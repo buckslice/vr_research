@@ -18,6 +18,15 @@ public class Packet {
         writer = new BinaryWriter(stream);
     }
     /// <summary>
+    /// Build a packet for writing data with specified buffer size
+    /// </summary>
+    public Packet(int bufsize)
+    {
+        buffer = new byte[bufsize];
+        stream = new MemoryStream(buffer);
+        writer = new BinaryWriter(stream);
+    }
+    /// <summary>
     /// Build a packet for reading data
     /// </summary>
     /// <param name="buffer">data to be read</param>

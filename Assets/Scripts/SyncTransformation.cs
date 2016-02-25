@@ -22,10 +22,14 @@ public class SyncTransformation : SyncScript
     private Vector3 curPos;
     private Quaternion curRot;
     private Vector3 curScale;
+
+    int bufsize;
     
     // Use this for initialization
 	void Start ()
     {
+        bufsize = sizeof(int) + sizeof(float) * 3 + sizeof(float) * 4; //ID + vector3 + quaternion
+        bufsize = Mathf.NextPowerOfTwo(bufsize) * 2;
         client = Object.FindObjectOfType<GameClient>();
         server = Object.FindObjectOfType<GameServer>();
         if (client)
@@ -83,15 +87,15 @@ public class SyncTransformation : SyncScript
 
     override public void Send()
     {
-        Packet p = new Packet();
+        Packet p = new Packet(bufsize);
         p.Write(networkID);
         p.Write(curPos);
         p.Write(curRot);
         p.Write(curScale);
         if (client)
-            client.SendPacket(p, QosType.StateUpdate);
+            client.SendPacket(p, QosType.Reliable);
         if (server)
-            server.SendPacket(p, QosType.StateUpdate);
+            server.SendPacket(p, QosType.Reliable);
     }
 
     override public void Receive(Packet p)
