@@ -29,7 +29,7 @@ public class SyncTransformation : SyncScript
 	void Start ()
     {
         bufsize = sizeof(int) + sizeof(float) * 3 + sizeof(float) * 4; //ID + vector3 + quaternion
-        bufsize = Mathf.NextPowerOfTwo(bufsize) * 2;
+        bufsize = Mathf.NextPowerOfTwo(bufsize) * 2; //for some reason just the next power isn't enough room.
         client = Object.FindObjectOfType<GameClient>();
         server = Object.FindObjectOfType<GameServer>();
         if (client)
@@ -93,9 +93,9 @@ public class SyncTransformation : SyncScript
         p.Write(curRot);
         p.Write(curScale);
         if (client)
-            client.SendPacket(p, QosType.Reliable);
+            client.SendPacket(p, QosType.Unreliable);
         if (server)
-            server.SendPacket(p, QosType.Reliable);
+            server.SendPacket(p, QosType.Unreliable);
     }
 
     override public void Receive(Packet p)
