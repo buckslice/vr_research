@@ -19,7 +19,12 @@ public class GameServer : MonoBehaviour {
     int subversion = 0;
     int maxConnections = 10;
 
-    void Awake() {
+    const int MAXSYNCED = 1024;
+    SyncScript[] syncScripts;
+
+    void Awake()
+    {
+        syncScripts = new SyncScript[MAXSYNCED];
         //GlobalConfig gConfig = new GlobalConfig();
         //gConfig.MaxPacketSize = 500;
 
@@ -36,6 +41,7 @@ public class GameServer : MonoBehaviour {
         Debug.Log("Server socket opened: " + serverSocket);
 
         Packet p = new Packet();
+        p.Write(0);
         p.Write("HI ITS ME THE SERVER CONNECT UP");
         p.Write(23.11074f);
         p.Write(new Vector3(2.0f, 1.0f, 0.0f));
@@ -72,6 +78,7 @@ public class GameServer : MonoBehaviour {
 
     public void sendTestMessage() {
         Packet p = new Packet();
+        p.Write(0);
         p.Write("test message from server to client");
 
         byte error;
@@ -95,7 +102,7 @@ public class GameServer : MonoBehaviour {
                 case NetworkEventType.Nothing:
                     return;
                 case NetworkEventType.DataEvent:
-                    processPacket(new Packet(buffer));
+                    ReceivePacket(new Packet(buffer));
                     break;
                 case NetworkEventType.ConnectEvent:
                     clientConnection = recConnectionId;
@@ -111,9 +118,46 @@ public class GameServer : MonoBehaviour {
         }
     }
 
-    public void processPacket(Packet p) {
-        string s = p.ReadString();
-        Debug.Log(s);
+
+    public void ReceivePacket(Packet p)
+    {
+        int id = p.ReadInt();
+        SyncScript sync = syncScripts[id];
+        if (sync && sync.receiving)
+            sync.Receive(p);
     }
 
+    public void SendPacket(Packet p, QosType qt)
+    {
+        byte error;
+        NetworkTransport.Send(serverSocket, clientConnection, GetChannel(qt), p.getData(), p.getSize(), out error);
+    }
+
+    public void addID(int id, SyncScript sync)
+    {
+        if (id > MAXSYNCED || id < 0)
+            Debug.LogError("ID " + id + " is invalid. IDs must be between 0 and " + MAXSYNCED);
+        else
+            syncScripts[id] = sync;
+    }
+
+    public void removeID(int id)
+    {
+        syncScripts[id] = null;
+    }
+
+    private byte GetChannel(QosType qt)
+    {
+        switch (qt)
+        {
+            case QosType.Reliable:
+                return channelReliable;
+            case QosType.Unreliable:
+                return channelUnreliable;
+            case QosType.StateUpdate:
+                return channelState;
+            default:
+                return channelReliable;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.Networking;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -20,7 +21,11 @@ public class GameClient : MonoBehaviour {
     int subversion = 0;
     int maxConnections = 10;
 
+    const int MAXSYNCED = 1024;
+    SyncScript[] syncScripts;
+
     void Awake() {
+        syncScripts = new SyncScript[MAXSYNCED];
         //GlobalConfig gConfig = new GlobalConfig();
         //gConfig.MaxPacketSize = 500;
 
@@ -49,7 +54,7 @@ public class GameClient : MonoBehaviour {
             Application.Quit();
         }
 
-        if (Input.GetKeyDown(KeyCode.Space)) {
+        if (Input.GetKeyDown(KeyCode.Backspace)) {
             sendTestMessage();
         }
 
@@ -58,6 +63,7 @@ public class GameClient : MonoBehaviour {
 
     public void sendTestMessage() {
         Packet p = new Packet();
+        p.Write(0);
         p.Write("test message from client to server");
 
         byte error;
@@ -86,7 +92,7 @@ public class GameClient : MonoBehaviour {
                 case NetworkEventType.Nothing:
                     return;
                 case NetworkEventType.DataEvent:
-                    processPacket(new Packet(buffer));
+                    ReceivePacket(new Packet(buffer));
                     break;
 
                 case NetworkEventType.BroadcastEvent:
@@ -99,6 +105,7 @@ public class GameClient : MonoBehaviour {
                         clientSocket, buffer, bsize, out dataSize, out error);
 
                     Packet p = new Packet(buffer);
+                    p.ReadInt(); //network ID. Unused in this case.
                     string s = p.ReadString();
                     float f = p.ReadFloat();
                     Vector3 v = p.ReadVector3();
@@ -129,10 +136,51 @@ public class GameClient : MonoBehaviour {
         }
     }
 
-    public void processPacket(Packet p) {
+    public void ReceivePacket(Packet p)
+    {
+        int id = p.ReadInt();
+        SyncScript sync = syncScripts[id];
+        if (sync && sync.receiving)
+            sync.Receive(p);
+    }
+
+    public void SendPacket(Packet p, QosType qt)
+    {
+        byte error;
+        NetworkTransport.Send(clientSocket, serverConnection, GetChannel(qt), p.getData(), p.getSize(), out error);
+    }
+
+    public void addID(int id, SyncScript sync)
+    {
+        if (id > MAXSYNCED || id < 0)
+            Debug.LogError("ID " + id + " is invalid. IDs must be between 0 and " + MAXSYNCED);
+        else
+            syncScripts[id] = sync;
+    }
+
+    public void removeID(int id)
+    {
+        syncScripts[id] = null;
+    }
+
+    private void processPacket(Packet p)
+    {
         string s = p.ReadString();
         Debug.Log(s);
     }
 
-
+    private byte GetChannel(QosType qt)
+    {
+        switch(qt)
+        {
+            case QosType.Reliable:
+                return channelReliable;
+            case QosType.Unreliable:
+                return channelUnreliable;
+            case QosType.StateUpdate:
+                return channelState;
+            default:
+                return channelReliable;
+        }
+    }
 }
