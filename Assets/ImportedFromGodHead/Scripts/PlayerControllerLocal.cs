@@ -14,9 +14,11 @@ public class PlayerControllerLocal : MonoBehaviour {
 
     private bool grounded = false;
     private bool hasLanded = false;
+    bool isAndroid = false;
 
     // Use this for initialization
     void Start() {
+        isAndroid = Application.isMobilePlatform;
         cam = transform.Find("Main Camera");
         rb = GetComponent<Rigidbody>();
     }
@@ -28,8 +30,8 @@ public class PlayerControllerLocal : MonoBehaviour {
     // Update is called once per frame
     void Update() {
 
-        float targetHoriz = Input.GetAxisRaw("Mouse X") * mouseSensitivy;
-        curVertLook -= Input.GetAxisRaw("Mouse Y") * mouseSensitivy;
+        float targetHoriz = isAndroid ? 0f : Input.GetAxisRaw("Mouse X") * mouseSensitivy;
+        curVertLook -= isAndroid ? 0f : Input.GetAxisRaw("Mouse Y") * mouseSensitivy;
         curVertLook = Mathf.Clamp(curVertLook, -90.0f, 90.0f);
 
         Quaternion targetVert = Quaternion.Euler(curVertLook, 0.0f, 0.0f);
@@ -50,6 +52,8 @@ public class PlayerControllerLocal : MonoBehaviour {
 
         float inputX = Input.GetAxisRaw("Horizontal");
         float inputY = Input.GetAxisRaw("Vertical");
+        if (isAndroid && Input.GetMouseButton(0))
+            inputY = 1f;
 
         Vector2 input = new Vector2(inputX, inputY);
         if (input.sqrMagnitude > 1.0f) {
