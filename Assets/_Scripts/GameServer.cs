@@ -64,14 +64,14 @@ public class GameServer : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            Debug.Log("SERVER: APPLICATION QUITTING");
-            Application.Quit();
-        }
+        //if (Input.GetKeyDown(KeyCode.Escape)) {
+        //    Debug.Log("SERVER: APPLICATION QUITTING");
+        //    Application.Quit();
+        //}
 
-        if (Input.GetKeyDown(KeyCode.Backspace)) {
-            sendTestMessage();
-        }
+        //if (Input.GetKeyDown(KeyCode.Backspace)) {
+        //    sendTestMessage();
+        //}
 
         checkMessages();
     }

@@ -11,7 +11,7 @@ public class IPKeyPad : MonoBehaviour {
 	void Start () {
         cam = Camera.main.transform;
         aud = GetComponent<AudioSource>();
-        myIP = UtilitiesToAdd.GetIP();
+        myIP = GeneralUtils.GetIP();
         TextMesh myIPtxt = transform.Find("myIP").GetComponent<TextMesh>();
         theirIPtxt = transform.Find("theirIP").GetComponent<TextMesh>();
 

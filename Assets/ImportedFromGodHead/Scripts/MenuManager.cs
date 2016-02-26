@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour 
 {
@@ -13,16 +15,18 @@ public class MenuManager : MonoBehaviour
     private ParticleSystem.EmissionModule serverps;
     private ParticleSystem.EmissionModule clientps;
     private IPKeyPad keyPad;
+    private OVRScreenFade ovrFade;
     public string ipAddress;
+    private bool fading = false;
 
     void Awake()
     {
-        ipAddress = Application.isEditor ? "192.168.0.103" : "192.168.0.105";
         cam = Camera.main.transform;
+        ovrFade = cam.GetComponent<OVRScreenFade>();
         serverCube = GameObject.Find("ServerCube");
         clientCube = GameObject.Find("ClientCube");
 
-        keyPad = UnityEngine.Object.FindObjectOfType<IPKeyPad>();
+        //keyPad = UnityEngine.Object.FindObjectOfType<IPKeyPad>();
         serverps = serverCube.GetComponent<ParticleSystem>().emission;
         clientps = clientCube.GetComponent<ParticleSystem>().emission;
 
@@ -32,40 +36,45 @@ public class MenuManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
             Application.Quit();
-
-        if (isLookingAtObject(serverCube.name)) 
+        
+        string lookedAt = NameOfLookedAt();
+        if (lookedAt == serverCube.name) 
         {
             spinTransform(serverCube.transform);
             serverps.enabled = true;
 
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-                NetworkManager.singleton.StartHost();
+            if (!fading && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
+                StartCoroutine(FadeOutThenLoad("VRScene"));
         } 
         else
             serverps.enabled = false;
 
-        if (isLookingAtObject(clientCube.name)) 
+        if (lookedAt == clientCube.name) 
         {
             spinTransform(clientCube.transform);
             clientps.enabled = true;
 
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-            {
-                NetworkManager.singleton.networkAddress = keyPad.theirIP;//"192.168.0.103";
-                NetworkManager.singleton.networkPort = 7777;
-                NetworkManager.singleton.StartClient();
-            }
+            if (!fading && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
+                StartCoroutine(FadeOutThenLoad("ARScene"));
         } 
         else
             clientps.enabled = false;
     }
 
-    private bool isLookingAtObject(string name)
+    private IEnumerator FadeOutThenLoad(string levelname)
+    {
+        fading = true;
+        yield return StartCoroutine(ovrFade.FadeOut());
+        fading = false;
+        SceneManager.LoadScene(levelname);
+    }
+
+    private string NameOfLookedAt()
     {
         RaycastHit hit;
         if (!Physics.Raycast(cam.position, cam.forward, out hit))
-            return false;
-        return hit.collider.name == name;
+            return "";
+        return hit.collider.name;
     }
 
     private void spinTransform(Transform tform) 

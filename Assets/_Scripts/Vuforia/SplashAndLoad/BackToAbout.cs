@@ -10,12 +10,12 @@ public class BackToAbout : MonoBehaviour
     void Update()
     {
 #if UNITY_ANDROID
-        // On Android, the Back button is mapped to the Esc key
-        if (Input.GetKeyUp(KeyCode.Escape))
-        {
-            // Go back to the About page
-            Application.LoadLevel("Vuforia-1-About");
-        }
+        //// On Android, the Back button is mapped to the Esc key
+        //if (Input.GetKeyUp(KeyCode.Escape))
+        //{
+        //    // Go back to the About page
+        //    Application.LoadLevel("Vuforia-1-About");
+        //}
 #endif
     }
     #endregion // MONOBEHAVIOUR_METHODS

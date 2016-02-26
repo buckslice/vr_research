@@ -49,14 +49,14 @@ public class GameClient : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            Debug.Log("CLIENT: APPLICATION QUITTING");
-            Application.Quit();
-        }
+        //if (Input.GetKeyDown(KeyCode.Escape)) {
+        //    Debug.Log("CLIENT: APPLICATION QUITTING");
+        //    Application.Quit();
+        //}
 
-        if (Input.GetKeyDown(KeyCode.Backspace)) {
-            sendTestMessage();
-        }
+        //if (Input.GetKeyDown(KeyCode.Backspace)) {
+        //    sendTestMessage();
+        //}
 
         checkMessages();
     }
