@@ -15,7 +15,7 @@ public class GameClient : MonoBehaviour {
     int clientSocket = -1;      // id of clients socket (called hosts in unity)
     int serverConnection = -1;  // connection to server
 
-    int port = 8887;
+    public int port = 8887;
     int key = 420;
     int version = 1;
     int subversion = 0;

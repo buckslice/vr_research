@@ -11,7 +11,7 @@ public class GameServer : MonoBehaviour {
     byte channelState;
 
     int serverSocket;      // id of socket (called hosts in unity)
-    int clientConnection;  // should be list eventually (multiple clients)
+    int[] clientConnection = {0,0};  // should be list eventually (multiple clients)
 
     int port = 8888;
     int key = 420;
@@ -40,39 +40,45 @@ public class GameServer : MonoBehaviour {
         serverSocket = NetworkTransport.AddHost(topology, port);
         Debug.Log("Server socket opened: " + serverSocket);
 
+        Packet p = MakeTestPacket();
+        StartCoroutine(StartBroadcast(p, port-1));
+
+    }
+    Packet MakeTestPacket()
+    {
         Packet p = new Packet();
         p.Write(0);
         p.Write("HI ITS ME THE SERVER CONNECT UP");
         p.Write(23.11074f);
         p.Write(new Vector3(2.0f, 1.0f, 0.0f));
-
+        return p;
+    }
+    IEnumerator StartBroadcast(Packet p, int clientPort)
+    {
+        while (NetworkTransport.IsBroadcastDiscoveryRunning())
+            yield return new WaitForEndOfFrame();
         byte error;
         //NetworkTransport.SetBroadcastCredentials(serverSocket, key, version, subversion, out error);
         bool b = NetworkTransport.StartBroadcastDiscovery(  // need to broadcast to client port!!!! OFC!!!!
-            serverSocket, 8887, key, version, subversion, p.getData(), p.getSize(), 100, out error);
+            serverSocket, clientPort, key, version, subversion, p.getData(), p.getSize(), 100, out error);
 
-        if (!b) {
+        if (!b)
+        {
             Debug.Log("QUIT EVENT");
             Application.Quit();
-        } else if (NetworkTransport.IsBroadcastDiscoveryRunning()) {
+        }
+        else if (NetworkTransport.IsBroadcastDiscoveryRunning())
+        {
             Debug.Log("Server started and broadcasting");
-        } else {
+        }
+        else
+        {
             Debug.Log("Server started but not broadcasting!!!");
         }
-
     }
-
     // Update is called once per frame
-    void Update() {
-        //if (Input.GetKeyDown(KeyCode.Escape)) {
-        //    Debug.Log("SERVER: APPLICATION QUITTING");
-        //    Application.Quit();
-        //}
-
-        //if (Input.GetKeyDown(KeyCode.Backspace)) {
-        //    sendTestMessage();
-        //}
-
+    void Update()
+    {
         checkMessages();
     }
 
@@ -82,9 +88,12 @@ public class GameServer : MonoBehaviour {
         p.Write("test message from server to client");
 
         byte error;
-        NetworkTransport.Send(serverSocket, clientConnection, channelReliable, p.getData(), p.getSize(), out error);
+        if(clientConnection[0] != 0)
+            NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
+        if (clientConnection[1] != 0)
+            NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
     }
-
+    int connectCount = 0;
     public void checkMessages() {
         int recConnectionId;
         int recChannelId;
@@ -105,11 +114,14 @@ public class GameServer : MonoBehaviour {
                     ReceivePacket(new Packet(buffer));
                     break;
                 case NetworkEventType.ConnectEvent:
-                    clientConnection = recConnectionId;
-                    NetworkTransport.StopBroadcastDiscovery();  // stop spamming everyone
+                    clientConnection[connectCount] = recConnectionId;
+                    NetworkTransport.StopBroadcastDiscovery();
+                    if (connectCount++ < 1)
+                        StartCoroutine(StartBroadcast(MakeTestPacket(), port - 2));
                     Debug.Log("SERVER: client connected");
                     break;
                 case NetworkEventType.DisconnectEvent:
+
                     Debug.Log("SERVER: client disconnected");
                     break;
                 default:
@@ -130,7 +142,10 @@ public class GameServer : MonoBehaviour {
     public void SendPacket(Packet p, QosType qt)
     {
         byte error;
-        NetworkTransport.Send(serverSocket, clientConnection, GetChannel(qt), p.getData(), p.getSize(), out error);
+        if(clientConnection[0] != 0)
+            NetworkTransport.Send(serverSocket, clientConnection[0], GetChannel(qt), p.getData(), p.getSize(), out error);
+        if (clientConnection[1] != 0)
+            NetworkTransport.Send(serverSocket, clientConnection[1], GetChannel(qt), p.getData(), p.getSize(), out error);
     }
 
     public void addID(int id, SyncScript sync)
