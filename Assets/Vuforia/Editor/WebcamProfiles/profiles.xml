@@ -173,7 +173,7 @@
             <resampledTextureWidth>640</resampledTextureWidth>
         </osx>
     </webcam>
-    <webcam deviceName="Logitech HD Pro Webcam C920">
+    <webcam deviceName="Logitech HD Pro Webcam C615">
         <windows>
             <!-- size of the web cam texture requested from Unity -->
             <requestedTextureWidth>640</requestedTextureWidth>

@@ -111,7 +111,7 @@ public class GameServer : MonoBehaviour {
                 case NetworkEventType.Nothing:
                     return;
                 case NetworkEventType.DataEvent:
-                    ReceivePacket(new Packet(buffer));
+                    ReceivePacket(buffer, recConnectionId);
                     break;
                 case NetworkEventType.ConnectEvent:
                     clientConnection[connectCount] = recConnectionId;
@@ -131,21 +131,39 @@ public class GameServer : MonoBehaviour {
     }
 
 
-    public void ReceivePacket(Packet p)
+    public void ReceivePacket(byte[] buf, int clientPortNum)
     {
+        Packet p = new Packet(buf);
+        //if two clients connected, send packet to the other client.
+        if (clientConnection[0] != 0 && clientConnection[1] != 0)
+        {
+            Debug.Log("sending stuff");
+            Packet p2 = new Packet(buf);
+            if (clientPortNum == clientConnection[0])
+                SendPacket(p2, QosType.Unreliable, clientConnection[1]);
+            else if (clientPortNum == clientConnection[1])
+                SendPacket(p2, QosType.Unreliable, clientConnection[0]);
+        }
         int id = p.ReadInt();
         SyncScript sync = syncScripts[id];
         if (sync && sync.receiving)
             sync.Receive(p);
     }
 
+    //sends to both client connections
     public void SendPacket(Packet p, QosType qt)
     {
-        byte error;
-        if(clientConnection[0] != 0)
-            NetworkTransport.Send(serverSocket, clientConnection[0], GetChannel(qt), p.getData(), p.getSize(), out error);
+        if (clientConnection[0] != 0)
+            SendPacket(p, qt, clientConnection[0]);
         if (clientConnection[1] != 0)
-            NetworkTransport.Send(serverSocket, clientConnection[1], GetChannel(qt), p.getData(), p.getSize(), out error);
+            SendPacket(p,qt,clientConnection[1]);
+    }
+
+    //sends to specified port
+    public void SendPacket(Packet p, QosType qt, int clientPortNum)
+    {
+        byte error;
+        NetworkTransport.Send(serverSocket, clientPortNum, GetChannel(qt), p.getData(), p.getSize(), out error);
     }
 
     public void addID(int id, SyncScript sync)
