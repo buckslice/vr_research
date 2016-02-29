@@ -135,4 +135,29 @@ public class SyncTransformation : SyncScript
             //need to figure out a non-computationally expensive way to set scale globally
         }
     }
+
+    override public void Receive(Vector3 pos, Quaternion rot, Vector3 scl)
+    {
+        if (!receiving)
+            return;
+        if (useLocalValues)
+        {
+            if (SyncPosition)
+                transform.localPosition = pos;
+            if (SyncRotation)
+                transform.localRotation = rot;
+            if (SyncScale)
+                transform.localScale = scl;
+        }
+        else
+        {
+            if (SyncPosition)
+                transform.position = pos;
+            if (SyncRotation)
+                transform.rotation = rot;
+            if (SyncScale)
+                transform.localScale = scl;
+            //need to figure out a non-computationally expensive way to set scale globally
+        }
+    }
 }

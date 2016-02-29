@@ -91,7 +91,7 @@ public class GameServer : MonoBehaviour {
         if(clientConnection[0] != 0)
             NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
         if (clientConnection[1] != 0)
-            NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
+            NetworkTransport.Send(serverSocket, clientConnection[1], channelReliable, p.getData(), p.getSize(), out error);
     }
     int connectCount = 0;
     public void checkMessages() {
@@ -106,7 +106,6 @@ public class GameServer : MonoBehaviour {
 
             NetworkEventType recEvent = NetworkTransport.ReceiveFromHost(
                 serverSocket, out recConnectionId, out recChannelId, buffer, bsize, out dataSize, out error);
-
             switch (recEvent) {
                 case NetworkEventType.Nothing:
                     return;
@@ -129,25 +128,30 @@ public class GameServer : MonoBehaviour {
             }
         }
     }
-
-
+    //hoooooorrrrrrible code to get this working. Will make it generalized again later >.>
+    //Gotta change the SyncScript code back as well...
     public void ReceivePacket(byte[] buf, int clientPortNum)
     {
         Packet p = new Packet(buf);
-        //if two clients connected, send packet to the other client.
+        int id = p.ReadInt();
+        Vector3 pos = p.ReadVector3();
+        Quaternion rot = p.ReadQuaternion();
+        Vector3 scl = p.ReadVector3();
         if (clientConnection[0] != 0 && clientConnection[1] != 0)
         {
-            Debug.Log("sending stuff");
-            Packet p2 = new Packet(buf);
+            Packet p2 = new Packet();
+            p2.Write(id); 
+            p2.Write(pos);
+            p2.Write(rot);
+            p2.Write(scl);
             if (clientPortNum == clientConnection[0])
                 SendPacket(p2, QosType.Unreliable, clientConnection[1]);
             else if (clientPortNum == clientConnection[1])
                 SendPacket(p2, QosType.Unreliable, clientConnection[0]);
         }
-        int id = p.ReadInt();
         SyncScript sync = syncScripts[id];
         if (sync && sync.receiving)
-            sync.Receive(p);
+            sync.Receive(pos,rot,scl);
     }
 
     //sends to both client connections

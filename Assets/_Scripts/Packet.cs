@@ -42,7 +42,6 @@ public class Packet {
     {
         int pSize = p.getSize();
         buffer = new byte[pSize];
-        Debug.Log(pSize);
         for (int i = 0; i < pSize; ++i)
             buffer[i] = p.buffer[i];
         stream = new MemoryStream(buffer);

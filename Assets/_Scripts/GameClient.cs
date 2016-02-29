@@ -139,9 +139,14 @@ public class GameClient : MonoBehaviour {
     public void ReceivePacket(Packet p)
     {
         int id = p.ReadInt();
+        Vector3 pos = p.ReadVector3();
+        Quaternion rot = p.ReadQuaternion();
+        Vector3 scl = p.ReadVector3();
         SyncScript sync = syncScripts[id];
-        if (sync && sync.receiving)
-            sync.Receive(p);
+        if (id == 0)
+            processPacket(p);
+        else if (sync && sync.receiving)
+            sync.Receive(pos,rot,scl);
     }
 
     public void SendPacket(Packet p, QosType qt)
