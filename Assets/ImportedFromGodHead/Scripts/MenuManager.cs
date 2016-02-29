@@ -40,11 +40,11 @@ public class MenuManager : MonoBehaviour
         string lookedAt = NameOfLookedAt();
         if (lookedAt == serverCube.name) 
         {
-            spinTransform(serverCube.transform);
+            spinTransform(serverCube.transform); //no longer actually a server cube, but oh well.
             serverps.enabled = true;
 
             if (!fading && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
-                StartCoroutine(FadeOutThenLoad("VRScene"));
+                StartCoroutine(FadeOutThenLoad("VR client"));
         } 
         else
             serverps.enabled = false;
@@ -55,7 +55,7 @@ public class MenuManager : MonoBehaviour
             clientps.enabled = true;
 
             if (!fading && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
-                StartCoroutine(FadeOutThenLoad("ARScene"));
+                StartCoroutine(FadeOutThenLoad("AR client"));
         } 
         else
             clientps.enabled = false;

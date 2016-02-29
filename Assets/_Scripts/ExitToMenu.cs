@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class ExitToMenu : MonoBehaviour {
-    public string menuName = "GodHeadmenu";
+    public string menuName = "menu";
     private bool fading = false;
     private OVRScreenFade ovrFade;
 
