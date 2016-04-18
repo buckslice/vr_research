@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 
 public class CellGenerator : MonoBehaviour {
+
+    public float cellRadius = 10.0f;
+
     struct TriangleIndices {
         public int v1;
         public int v2;
@@ -147,8 +150,8 @@ public class CellGenerator : MonoBehaviour {
         float seed = Random.Range(-1000.0f, 1000.0f);
 
         for(int i = 0; i < vertices.Count; i++) {
-            Vector3 v = vertices[i] * 10.0f;
-            float n = Noise.fBM(Noise.Simplex3D, v, seed, 0.05f, 3);
+            Vector3 v = vertices[i] * cellRadius;
+            float n = Noise.fBM(Noise.Simplex3D, v, seed, 0.5f/cellRadius, 3);
             vertices[i] = v + v * n * 0.1f;
         }
 

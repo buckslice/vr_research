@@ -41,6 +41,11 @@ public class PlayerControllerLocal : MonoBehaviour {
 
         transform.Rotate(0.0f, curHorizLook, 0.0f);
 
+        timeSinceJump += Time.deltaTime;
+        if (Input.GetButtonDown("Jump")) {
+            timeSinceJump = 0.0f;
+        }
+
     }
 
     void FixedUpdate() {
@@ -60,11 +65,6 @@ public class PlayerControllerLocal : MonoBehaviour {
             input.Normalize();
         }
         Vector3 xzforward = Vector3.Cross(Vector3.up, -cam.right).normalized;
-
-        timeSinceJump += Time.deltaTime;
-        if (Input.GetButtonDown("Jump")) {
-            timeSinceJump = 0.0f;
-        }
 
         float newY = rb.velocity.y;
         if (timeSinceJump < 0.25f && grounded) {
