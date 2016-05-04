@@ -4,3 +4,8 @@
 !Assets/**
 !ProjectSettings/
 !ProjectSettings/**
+*.pidb
+Assets/Assembly-CSharp-firstpass.pidb.meta
+Assets/Assembly-CSharp.pidb.meta
+Assets/Assembly-CSharp-Editor-firstpass.pidb.meta
+Assets/Assembly-CSharp-Editor.pidb.meta
