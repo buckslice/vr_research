@@ -11,6 +11,7 @@ public class SyncTransformUtils : MonoBehaviour
     private int id;
     [Header("SyncTransform variables")]
     public bool receiving;
+    public bool moveRigidbodies = false;
     public bool useLocalValues = true;
     public bool SyncPosition = true;
     public bool SyncRotation = true;
@@ -28,6 +29,7 @@ public class SyncTransformUtils : MonoBehaviour
         {
             SyncTransformation sync = children[i].gameObject.AddComponent<SyncTransformation>();
             sync.receiving = receiving;
+            //sync.moveRigidbodies = moveRigidbodies;
             sync.useLocalValues = useLocalValues;
             sync.SyncPosition = SyncPosition;
             sync.SyncRotation = SyncRotation;

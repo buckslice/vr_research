@@ -5,6 +5,8 @@ using UnityEngine.Networking;
 public class SyncTransformation : SyncScript
 {
     public int networkID;
+ //   [SerializeField]
+    private bool moveRigidbodies = true;
     public bool useLocalValues = false;
     public bool SyncPosition = true;
     public bool SyncRotation = true;
@@ -17,6 +19,7 @@ public class SyncTransformation : SyncScript
 
     GameClient client;
     GameServer server;
+    Rigidbody rb;
 
     private Vector3 lastPos;
     private Quaternion lastRot;
@@ -31,6 +34,7 @@ public class SyncTransformation : SyncScript
     // Use this for initialization
     void Start()
     {
+        rb = GetComponent<Rigidbody>();
         bufsize = sizeof(int) + sizeof(float) * 3 + sizeof(float) * 4; //ID + vector3 + quaternion
         bufsize = Mathf.NextPowerOfTwo(bufsize) * 2; //for some reason just the next power isn't enough room.
         client = Object.FindObjectOfType<GameClient>();
@@ -115,7 +119,16 @@ public class SyncTransformation : SyncScript
         Vector3 pos = p.ReadVector3();
         Quaternion rot = p.ReadQuaternion();
         Vector3 scl = p.ReadVector3();
-        if (useLocalValues)
+        if(moveRigidbodies && rb) //assumes local values
+        {
+            if (SyncScale)
+                transform.localScale = scl;
+            if (SyncPosition)
+                rb.MovePosition(pos);
+            if (SyncRotation)
+                rb.MoveRotation(rot);
+        }
+        else if (useLocalValues)
         {
             if (SyncPosition)
                 transform.localPosition = pos;
