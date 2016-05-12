@@ -23,7 +23,17 @@ public class GameClient : MonoBehaviour {
 
     const int MAXSYNCED = 1024;
     SyncScript[] syncScripts;
-
+    void Reset()
+    {
+        NetworkTransport.Shutdown();
+        key = 420;
+        version = 1;
+        subversion = 0;
+        maxConnections = 10;
+        serverConnection = -1;
+        clientSocket = -1;
+        Awake();
+    }
     void Awake() {
         syncScripts = new SyncScript[MAXSYNCED];
         //GlobalConfig gConfig = new GlobalConfig();
@@ -129,6 +139,7 @@ public class GameClient : MonoBehaviour {
                     break;
                 case NetworkEventType.DisconnectEvent:
                     Debug.Log("CLIENT: someone disconnected?");
+                    Reset();
                     break;
                 default:
                     break;
