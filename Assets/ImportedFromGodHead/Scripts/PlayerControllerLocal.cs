@@ -5,6 +5,8 @@ using UnityEngine.Networking;
 public class PlayerControllerLocal : MonoBehaviour {
     //public bool networked = true;
 
+    private ArtificialGravity artificialGravity;
+
     private Transform cam;
     private Rigidbody rb;
     private float mouseSensitivy = 8.0f;
@@ -18,6 +20,7 @@ public class PlayerControllerLocal : MonoBehaviour {
 
     // Use this for initialization
     void Start() {
+        artificialGravity = GetComponent<ArtificialGravity>();
         isAndroid = Application.isMobilePlatform;
         cam = transform.Find("Main Camera");
         rb = GetComponent<Rigidbody>();
@@ -49,11 +52,10 @@ public class PlayerControllerLocal : MonoBehaviour {
     }
 
     void FixedUpdate() {
-
         // check to see if player is grounded
-        Vector3 castStart = transform.position + new Vector3(0.0f, 0.5f, 0.0f);
+        Vector3 castStart = transform.position + transform.up * 0.5f;
         RaycastHit info;
-        grounded = Physics.SphereCast(castStart, 0.25f, Vector3.down, out info, 0.5f);
+        grounded = Physics.SphereCast(castStart, 0.25f, -transform.up, out info, 0.5f);
 
         float inputX = Input.GetAxisRaw("Horizontal");
         float inputY = Input.GetAxisRaw("Vertical");
@@ -64,19 +66,19 @@ public class PlayerControllerLocal : MonoBehaviour {
         if (input.sqrMagnitude > 1.0f) {
             input.Normalize();
         }
-        Vector3 xzforward = Vector3.Cross(Vector3.up, -cam.right).normalized;
+        Vector3 xzforward = transform.InverseTransformDirection(cam.forward);
+        Vector3 xzright = transform.InverseTransformDirection(cam.right);
+        float newY = transform.InverseTransformVector(rb.velocity).y;
 
-        float newY = rb.velocity.y;
         if (timeSinceJump < 0.25f && grounded) {
             newY = jumpSpeed;
             grounded = false;
-            //hasLanded = false;
         }
 
-        Vector3 xzright = cam.right;
-        xzright.y = 0.0f;
-        xzright.Normalize();
-        rb.velocity = (input.x * xzright + input.y * xzforward) * moveSpeed + newY * Vector3.up;
+        Vector3 dir = (input.x * xzright + input.y * xzforward);
+        dir.y = 0;
+        dir.Normalize();
+        rb.velocity = transform.TransformVector(dir * moveSpeed + newY*Vector3.up);
 
     }
 
