@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 public class GameClient : MonoBehaviour {
-
+    const int MESSAGE_ID = 1111;
     // qos handles
     byte channelReliable;
     byte channelUnreliable;
@@ -32,13 +32,15 @@ public class GameClient : MonoBehaviour {
         maxConnections = 10;
         serverConnection = -1;
         clientSocket = -1;
-        Awake();
+        Init();
     }
     void Awake() {
         syncScripts = new SyncScript[MAXSYNCED];
-        //GlobalConfig gConfig = new GlobalConfig();
-        //gConfig.MaxPacketSize = 500;
+        Init();
+    }
 
+    void Init()
+    {
         NetworkTransport.Init();
 
         ConnectionConfig config = new ConnectionConfig();
@@ -56,17 +58,17 @@ public class GameClient : MonoBehaviour {
         //NUtils.LogNetworkError(error);
         Debug.Log("Client started");
     }
-
-    // Update is called once per frame
+    
     void Update() {
         //if (Input.GetKeyDown(KeyCode.Escape)) {
         //    Debug.Log("CLIENT: APPLICATION QUITTING");
         //    Application.Quit();
         //}
 
-        //if (Input.GetKeyDown(KeyCode.Backspace)) {
-        //    sendTestMessage();
-        //}
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            sendTestMessage();
+        }
 
         checkMessages();
     }
@@ -150,16 +152,28 @@ public class GameClient : MonoBehaviour {
     public void ReceivePacket(Packet p)
     {
         int id = p.ReadInt();
+        if (id == 0)
+            processPacket(p);
+        else if (id == MESSAGE_ID)
+            HandleMessage(p);
+        else
+            SetTransformFromPacket(p, id);
+    }
+    private void SetTransformFromPacket(Packet p, int id)
+    {
         Vector3 pos = p.ReadVector3();
         Quaternion rot = p.ReadQuaternion();
         Vector3 scl = p.ReadVector3();
         SyncScript sync = syncScripts[id];
-        if (id == 0)
-            processPacket(p);
-        else if (sync && sync.receiving)
-            sync.Receive(pos,rot,scl);
+        if (sync && sync.receiving)
+            sync.Receive(pos, rot, scl);
     }
-
+    private void HandleMessage(Packet p)
+    {
+        string message = p.ReadString();
+        if (message == "Reset")
+            Reset();
+    }
     public void SendPacket(Packet p, QosType qt)
     {
         byte error;

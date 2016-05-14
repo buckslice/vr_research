@@ -6,6 +6,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 public class GameServer : MonoBehaviour {
 
+    const int MESSAGE_ID = 1111;
+
     byte channelReliable;
     byte channelUnreliable;
     byte channelState;
@@ -24,6 +26,7 @@ public class GameServer : MonoBehaviour {
 
     void Reset()
     {
+        SendShutdownMessage();
         port = 8888;
         key = 420;
         version = 1;
@@ -34,15 +37,17 @@ public class GameServer : MonoBehaviour {
         serverSocket = 0;
         channelReliable = 0;
         NetworkTransport.Shutdown();
-        Awake();
+        Init();
     }
 
     void Awake()
     {
         syncScripts = new SyncScript[MAXSYNCED];
-        //GlobalConfig gConfig = new GlobalConfig();
-        //gConfig.MaxPacketSize = 500;
+        Init();
+    }
 
+    void Init()
+    {
         NetworkTransport.Init();
 
         ConnectionConfig config = new ConnectionConfig();
@@ -56,8 +61,7 @@ public class GameServer : MonoBehaviour {
         Debug.Log("Server socket opened: " + serverSocket);
 
         Packet p = MakeTestPacket();
-        StartCoroutine(StartBroadcast(p, port-1));
-
+        StartCoroutine(StartBroadcast(p, port - 1));
     }
     Packet MakeTestPacket()
     {
@@ -95,6 +99,10 @@ public class GameServer : MonoBehaviour {
     void Update()
     {
         checkMessages();
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            sendTestMessage();
+        }
     }
 
     public void sendTestMessage() {
@@ -108,6 +116,20 @@ public class GameServer : MonoBehaviour {
         if (clientConnection[1] != 0)
             NetworkTransport.Send(serverSocket, clientConnection[1], channelReliable, p.getData(), p.getSize(), out error);
     }
+
+    void SendShutdownMessage()
+    {
+        Packet p = new Packet();
+        p.Write(MESSAGE_ID);
+        p.Write("Reset");
+
+        byte error;
+        if (clientConnection[0] != 0)
+            NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
+        if (clientConnection[1] != 0)
+            NetworkTransport.Send(serverSocket, clientConnection[1], channelReliable, p.getData(), p.getSize(), out error);
+    }
+
     int connectCount = 0;
     public void checkMessages() {
         int recConnectionId;
@@ -144,19 +166,35 @@ public class GameServer : MonoBehaviour {
             }
         }
     }
-    //hoooooorrrrrrible code to get this working. Will make it generalized again later >.>
-    //Gotta change the SyncScript code back as well...
+
     public void ReceivePacket(byte[] buf, int clientPortNum)
     {
         Packet p = new Packet(buf);
         int id = p.ReadInt();
+        if(id == MESSAGE_ID || id == 0)
+            HandleMessage(p, clientPortNum);
+        else
+            SendTransformToOtherClient(p, clientPortNum, id);
+    }
+
+    private void HandleMessage(Packet p, int clientPortNum)
+    {
+        string message = p.ReadString();
+        if (message == "Reset")
+            Reset();
+        else
+            Debug.Log(message);
+    }
+
+    private void SendTransformToOtherClient(Packet p, int clientPortNum, int id)
+    {
         Vector3 pos = p.ReadVector3();
         Quaternion rot = p.ReadQuaternion();
         Vector3 scl = p.ReadVector3();
         if (clientConnection[0] != 0 && clientConnection[1] != 0)
         {
             Packet p2 = new Packet();
-            p2.Write(id); 
+            p2.Write(id);
             p2.Write(pos);
             p2.Write(rot);
             p2.Write(scl);
@@ -167,7 +205,7 @@ public class GameServer : MonoBehaviour {
         }
         SyncScript sync = syncScripts[id];
         if (sync && sync.receiving)
-            sync.Receive(pos,rot,scl);
+            sync.Receive(pos, rot, scl);
     }
 
     //sends to both client connections
@@ -188,8 +226,8 @@ public class GameServer : MonoBehaviour {
 
     public void addID(int id, SyncScript sync)
     {
-        if (id > MAXSYNCED || id < 0)
-            Debug.LogError("ID " + id + " is invalid. IDs must be between 0 and " + MAXSYNCED);
+        if (id > MAXSYNCED || id < 1)
+            Debug.LogError("ID " + id + " is invalid. IDs must be between 1 and " + MAXSYNCED);
         else
             syncScripts[id] = sync;
     }
