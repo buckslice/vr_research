@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: ec8c04d9a9ada7247bacb4e293541b4c
-timeCreated: 1463184841
+guid: 03b2cfc5fbb169545ac07d1c84c36cee
+timeCreated: 1463191067
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -17,8 +17,6 @@ ModelImporter:
     3300002: MitochondrionMembrane
     4300000: MitochondrionMembrane
     4300002: Mitochondrion
-    7400000: Default Take
-    9500000: //RootNode
   materials:
     importMaterials: 1
     materialName: 0
@@ -77,7 +75,7 @@ ModelImporter:
     rootMotionBoneName: 
     hasTranslationDoF: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 2
+  animationType: 0
   humanoidOversampling: 1
   additionalBone: 0
   userData: 
