@@ -6,6 +6,7 @@
         _NoiseTex("Noise", 2D) = "white" {}
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
+        _RippleScale( "RippleScale", Range(0.001, 1)) = 1.0
 	}
 	SubShader {	
         Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
@@ -35,13 +36,14 @@
 		};
 
         //float4 _Time;
+        half _RippleScale;
         void vert(inout appdata_full v, out Input o) {
             UNITY_INITIALIZE_OUTPUT(Input, o);
 
             o.norm = normalize(v.vertex.xyz);
             float uvn = float4(sin(v.normal.x + _Time.y/5.0)/2.0, cos(v.normal.y + _Time.y/7.3)/2.0, 0, 0);
             fixed4 noise = tex2Dlod(_NoiseTex, uvn) * 0.75;
-            v.vertex.xyz += noise * v.normal.xyz;   
+            v.vertex.xyz += noise * v.normal.xyz * _RippleScale;
             
         }
 

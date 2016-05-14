@@ -1,14 +1,22 @@
 ﻿using UnityEngine;
+using UnityEditor;
 using System.Collections.Generic;
 
-public class CellGenerator : MonoBehaviour {
+public class CellGenerator : EditorWindow {
 
-    public float cellRadius = 25.0f;
+    [MenuItem("Generation/Cell")]
+    static void Init() {
+        GetWindow(typeof(CellGenerator));
+    }
 
-    public bool fadeWhenClose = true;
-    private float camTransparentDist = 50.0f;
+    void OnGUI() {
+        int rec = EditorGUILayout.IntField(5);
+        float radius = EditorGUILayout.FloatField(25.0f);
 
-    private Material mat;
+        if (GUILayout.Button("Build Icosphere")) {
+            buildIcosphere(rec, radius);
+        }
+    }
 
     struct TriangleIndices {
         public int v1;
@@ -46,11 +54,15 @@ public class CellGenerator : MonoBehaviour {
     Dictionary<long, int> table = new Dictionary<long, int>();
 
     // generates or returns the vertices and indices of a unit icosphere
-    public void buildIcosphere(int rec) {
+    public void buildIcosphere(int rec, float radius) {
         //float time = Time.realtimeSinceStartup;
         if (rec > 9) {
             Debug.Log("Setting recursion level to maximum of 9");
             rec = 9;
+        }
+        if(rec < 1) {
+            Debug.Log("Setting recursion level to minimum of 1");
+            rec = 1;
         }
 
         // initialize variables
@@ -122,7 +134,25 @@ public class CellGenerator : MonoBehaviour {
 
         //Debug.Log("Icosphere of rec " + rec + " built in " + (Time.realtimeSinceStartup - time) + " seconds, using " + icosphereVerts.Count + " vertices and " + triangles.Count + " indices.");
 
-        //return new VertexData(vertices, triangles);
+        // add some random noise to distort the cell
+        float seed = Random.Range(-1000.0f, 1000.0f);
+        for (int i = 0; i < vertices.Count; i++) {
+            Vector3 v = vertices[i] * radius;
+            float n = Noise.fBM(Noise.Simplex3D, v, seed, 0.5f / radius, 3);
+            vertices[i] = v + v * n * 0.1f;
+        }
+
+        Mesh m = new Mesh();
+        m.vertices = vertices.ToArray();
+        m.triangles = triangles.ToArray();
+        m.RecalculateNormals();
+        m.RecalculateBounds();
+
+        GameObject go = new GameObject("Icosphere (rec " + rec + ")");
+        go.AddComponent<MeshRenderer>();
+        go.AddComponent<MeshFilter>().mesh = m;
+
+        AssetDatabase.CreateAsset(m, "Assets/Models/icosphere.asset");
     }
 
     private int getMidpoint(int p1, int p2) {
@@ -146,43 +176,4 @@ public class CellGenerator : MonoBehaviour {
         return index++;
     }
 
-
-    // Use this for initialization
-    void Start() {
-
-        buildIcosphere(5);
-
-        float seed = Random.Range(-1000.0f, 1000.0f);
-
-        for (int i = 0; i < vertices.Count; i++) {
-            Vector3 v = vertices[i] * cellRadius;
-            float n = Noise.fBM(Noise.Simplex3D, v, seed, 0.5f / cellRadius, 3);
-            vertices[i] = v + v * n * 0.1f;
-        }
-
-        Mesh m = new Mesh();
-        m.vertices = vertices.ToArray();
-        m.triangles = triangles.ToArray();
-        m.RecalculateNormals();
-        m.RecalculateBounds();
-
-        GetComponent<MeshFilter>().sharedMesh = m;
-
-        mat = GetComponent<MeshRenderer>().material;
-    }
-
-    // Update is called once per frame
-    void Update() {
-        if (!fadeWhenClose) {
-            return;
-        }
-        float d = Vector3.Magnitude(Camera.main.transform.position - transform.position);
-        float min = cellRadius * 2.0f;
-        float max = min + 20.0f;
-        float t = (d - min) / (min - max);
-        float a = Mathf.Lerp(0.1f, 0.5f, 1.0f-t);
-        Color c = mat.GetColor("_Color");
-        c.a = a;
-        mat.SetColor("_Color", c);
-    }
 }
