@@ -148,9 +148,9 @@ public class CellGenerator : EditorWindow {
         m.RecalculateNormals();
         m.RecalculateBounds();
 
-        GameObject go = new GameObject("Icosphere (rec " + rec + ")");
-        go.AddComponent<MeshRenderer>();
-        go.AddComponent<MeshFilter>().mesh = m;
+        //GameObject go = new GameObject("Icosphere (rec " + rec + ")");
+        //go.AddComponent<MeshRenderer>();
+        //go.AddComponent<MeshFilter>().mesh = m;
 
         AssetDatabase.CreateAsset(m, "Assets/Models/icosphere.asset");
     }
