@@ -6,29 +6,26 @@ using System.Collections.Generic;
 public class InfoChecker : MonoBehaviour {
     public float rayCastDistance = 20.0f;
 
-    private RectTransform panel;
-    private Text infoText;
-    private Text nameText;
+    public Object textPrefab;
+
+    private GameObject textObject;
+    private TextMesh textMesh;
 
     private Transform cam;
-    private ParticleSystem ps;
+    //private ParticleSystem ps;
     //private float gazeTimer;
     private IEnumerator currentShow = null;
 
     // Use this for initialization
     void Start() {
-        GameObject go = GameObject.Find("Canvas");
-        if (go) {
+        if (textPrefab) {
+            textObject = (GameObject)Instantiate(textPrefab, Vector3.up * 1000.0f, Quaternion.identity);
+            textMesh = textObject.transform.Find("Text").GetComponent<TextMesh>();
+            textObject.SetActive(false);
+
             cam = Camera.main.transform;
-            ps = cam.Find("Particles").GetComponent<ParticleSystem>();
-
-            panel = go.transform.Find("Panel").GetComponent<RectTransform>();
-            panel.gameObject.SetActive(false);
-
-            infoText = panel.Find("Info").GetComponent<Text>();
-            nameText = panel.Find("Name").GetComponent<Text>();
         } else {
-            Debug.LogWarning("Can't find CANVAS for LookInfo script!!! Deleting self...");
+            Debug.LogWarning("InfoChecker.cs missing textObject prefab");
             Destroy(this);
         }
     }
@@ -50,37 +47,40 @@ public class InfoChecker : MonoBehaviour {
         RaycastHit info;
         if (Physics.Raycast(cam.position, cam.forward, out info, rayCastDistance)) {
             if (Input.GetMouseButtonDown(0)) {
-                ps.transform.position = info.point - cam.forward * 0.1f;
-                ps.transform.rotation = Quaternion.LookRotation(info.normal);
+                //ps.transform.position = info.point - cam.forward * 0.1f;
+                //ps.transform.rotation = Quaternion.LookRotation(info.normal);
+
                 LookInfo lookInfo = info.collider.GetComponent<LookInfo>();
                 if (lookInfo) {
+                    textObject.transform.position = info.point - cam.forward * 0.1f;
+                    textObject.transform.rotation = Quaternion.LookRotation(-info.normal);
                     if (currentShow != null) {
                         StopCoroutine(currentShow);
                     }
                     currentShow = showText(lookInfo);
                     StartCoroutine(currentShow);
-                    Debug.Log("clicked");
                 }
             }
         } else {
-            ps.transform.position = cam.position + cam.forward * rayCastDistance;
-            ps.transform.rotation = Quaternion.Euler(cam.forward);
+            //ps.transform.position = cam.position + cam.forward * rayCastDistance;
+            //ps.transform.rotation = Quaternion.Euler(cam.forward);
         }
 
-        ParticleSystem.EmissionModule em = ps.emission;
-        em.enabled = Input.GetMouseButton(0);
+        //ParticleSystem.EmissionModule em = ps.emission;
+        //em.enabled = Input.GetMouseButton(0);
 
     }
 
 
     IEnumerator showText(LookInfo info) {
-        panel.gameObject.SetActive(true);
+        textObject.SetActive(true);
 
-        nameText.text = info.title;
-        infoText.text = info.text;
+        textMesh.text = info.text;
+        //nameText.text = info.title;
+        //infoText.text = info.text;
 
         yield return new WaitForSeconds(5.0f);
 
-        panel.gameObject.SetActive(false);
+        textObject.SetActive(false);
     }
 }

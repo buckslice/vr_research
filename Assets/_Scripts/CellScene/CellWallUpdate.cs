@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class CellWallUpdate : MonoBehaviour {
-
+    public Color color = Color.white;
     public float cellRadius = 25.0f;
     public float rippleScale = 1.0f;
     public bool fadeWhenClose = true;
@@ -10,12 +10,12 @@ public class CellWallUpdate : MonoBehaviour {
     private MeshRenderer mr;
 
     // Use this for initialization
-    void Start () {
+    void Start() {
         mr = GetComponent<MeshRenderer>();
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update() {
         MaterialPropertyBlock mpb = new MaterialPropertyBlock();
         mpb.SetFloat("_RippleScale", rippleScale);
 
@@ -25,10 +25,10 @@ public class CellWallUpdate : MonoBehaviour {
             float max = min + 20.0f;
             float t = (d - min) / (min - max);
             float a = Mathf.Lerp(0.1f, 0.5f, 1.0f - t);
-            Color c = mr.material.GetColor("_Color");
-            c.a = a;
-            mpb.SetColor("_Color", c);
+            //Color c = mr.material.GetColor("_Color");
+            color.a = a;
         }
+        mpb.SetColor("_Color", color);
 
         mr.SetPropertyBlock(mpb);
     }

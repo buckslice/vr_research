@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class LookInfo : MonoBehaviour {
 
-    public string title;
+    [Multiline]
     public string text;
 
 }
