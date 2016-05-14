@@ -3,7 +3,12 @@ using System.Collections.Generic;
 
 public class CellGenerator : MonoBehaviour {
 
-    public float cellRadius = 10.0f;
+    public float cellRadius = 25.0f;
+
+    public bool fadeWhenClose = true;
+    private float camTransparentDist = 50.0f;
+
+    private Material mat;
 
     struct TriangleIndices {
         public int v1;
@@ -57,7 +62,7 @@ public class CellGenerator : MonoBehaviour {
 
         // 12 starting points
         for (int i = 0; i < 12; i++) {
-            vertices.Add(goldenVectors[i]);            
+            vertices.Add(goldenVectors[i]);
             index++;
         }
         //vertices.AddRange(goldenVectors);
@@ -143,15 +148,15 @@ public class CellGenerator : MonoBehaviour {
 
 
     // Use this for initialization
-    void Start () {
+    void Start() {
 
         buildIcosphere(5);
 
         float seed = Random.Range(-1000.0f, 1000.0f);
 
-        for(int i = 0; i < vertices.Count; i++) {
+        for (int i = 0; i < vertices.Count; i++) {
             Vector3 v = vertices[i] * cellRadius;
-            float n = Noise.fBM(Noise.Simplex3D, v, seed, 0.5f/cellRadius, 3);
+            float n = Noise.fBM(Noise.Simplex3D, v, seed, 0.5f / cellRadius, 3);
             vertices[i] = v + v * n * 0.1f;
         }
 
@@ -162,10 +167,22 @@ public class CellGenerator : MonoBehaviour {
         m.RecalculateBounds();
 
         GetComponent<MeshFilter>().sharedMesh = m;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+
+        mat = GetComponent<MeshRenderer>().material;
+    }
+
+    // Update is called once per frame
+    void Update() {
+        if (!fadeWhenClose) {
+            return;
+        }
+        float d = Vector3.Magnitude(Camera.main.transform.position - transform.position);
+        float min = cellRadius * 2.0f;
+        float max = min + 20.0f;
+        float t = (d - min) / (min - max);
+        float a = Mathf.Lerp(0.1f, 0.5f, 1.0f-t);
+        Color c = mat.GetColor("_Color");
+        c.a = a;
+        mat.SetColor("_Color", c);
+    }
 }

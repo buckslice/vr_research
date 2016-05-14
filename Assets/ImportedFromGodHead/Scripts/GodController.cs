@@ -81,7 +81,7 @@ public class GodController : NetworkBehaviour {
             }
             else
             {
-                GameObject go = (GameObject)GameObject.Instantiate(explosion, hit.point, hit.transform.rotation);
+                Instantiate(explosion, hit.point, hit.transform.rotation);
             }
             if (hit.collider.tag == "Zombie")
             {
