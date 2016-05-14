@@ -13,7 +13,7 @@ public class GameServer : MonoBehaviour {
     byte channelState;
 
     int serverSocket;      // id of socket (called hosts in unity)
-    int[] clientConnection = {0,0,0};  // should be list eventually (multiple clients)
+    int[] clientConnection = {0,0};  // should be list eventually (multiple clients)
 
     int port = 8888;
     int key = 420;
@@ -33,7 +33,7 @@ public class GameServer : MonoBehaviour {
         subversion = 0;
         maxConnections = 10;
         connectCount = 0;
-        clientConnection = new int[]{ 0,0,0};
+        clientConnection = new int[]{ 0,0};
         serverSocket = 0;
         channelReliable = 0;
         NetworkTransport.Shutdown();
@@ -115,8 +115,6 @@ public class GameServer : MonoBehaviour {
             NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
         if (clientConnection[1] != 0)
             NetworkTransport.Send(serverSocket, clientConnection[1], channelReliable, p.getData(), p.getSize(), out error);
-        if (clientConnection[2] != 0)
-            NetworkTransport.Send(serverSocket, clientConnection[2], channelReliable, p.getData(), p.getSize(), out error);
     }
     public void sendMessage(string message)
     {
@@ -129,8 +127,6 @@ public class GameServer : MonoBehaviour {
             NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
         if (clientConnection[1] != 0)
             NetworkTransport.Send(serverSocket, clientConnection[1], channelReliable, p.getData(), p.getSize(), out error);
-        if (clientConnection[2] != 0)
-            NetworkTransport.Send(serverSocket, clientConnection[2], channelReliable, p.getData(), p.getSize(), out error);
     }
 
     void SendShutdownMessage()
@@ -144,8 +140,6 @@ public class GameServer : MonoBehaviour {
             NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
         if (clientConnection[1] != 0)
             NetworkTransport.Send(serverSocket, clientConnection[1], channelReliable, p.getData(), p.getSize(), out error);
-        if (clientConnection[2] != 0)
-            NetworkTransport.Send(serverSocket, clientConnection[2], channelReliable, p.getData(), p.getSize(), out error);
     }
 
     int connectCount = 0;
@@ -172,8 +166,6 @@ public class GameServer : MonoBehaviour {
                     NetworkTransport.StopBroadcastDiscovery();
                     if (connectCount++ < 1)
                         StartCoroutine(StartBroadcast(MakeTestPacket(), port - 2));
-                    else if (connectCount++ < 2)
-                        StartCoroutine(StartBroadcast(MakeTestPacket(), port - 3));
                     Debug.Log("SERVER: client connected");
                     break;
                 case NetworkEventType.DisconnectEvent:
@@ -241,15 +233,6 @@ public class GameServer : MonoBehaviour {
             childScript.transform.parent = parentScript.transform.parent;
     }
 
-    private Packet MakeJankyPacket(int id, Vector3 pos, Quaternion rot, Vector3 scl)
-    {
-        Packet p2 = new Packet();
-        p2.Write(id);
-        p2.Write(pos);
-        p2.Write(rot);
-        p2.Write(scl);
-        return p2;
-    }
     private void SendTransformToOtherClient(Packet p, int clientPortNum, int id)
     {
         Vector3 pos = p.ReadVector3();
@@ -257,24 +240,15 @@ public class GameServer : MonoBehaviour {
         Vector3 scl = p.ReadVector3();
         if (clientConnection[0] != 0 && clientConnection[1] != 0)
         {
-            Packet p2 = MakeJankyPacket(id, pos, rot, scl);
-            Packet p3 = MakeJankyPacket(id, pos, rot, scl);
+            Packet p2 = new Packet();
+            p2.Write(id);
+            p2.Write(pos);
+            p2.Write(rot);
+            p2.Write(scl);
             if (clientPortNum == clientConnection[0])
-            {
                 SendPacket(p2, QosType.Unreliable, clientConnection[1]);
-                SendPacket(p3,QosType.Unreliable, clientConnection[2]);
-            }
-
             else if (clientPortNum == clientConnection[1])
-            {
                 SendPacket(p2, QosType.Unreliable, clientConnection[0]);
-                SendPacket(p3, QosType.Unreliable, clientConnection[2]);
-            }
-            else if (clientPortNum == clientConnection[2])
-            {
-                SendPacket(p2, QosType.Unreliable, clientConnection[0]);
-                SendPacket(p3, QosType.Unreliable, clientConnection[1]);
-            }
         }
         SyncScript sync = syncScripts[id];
         if (sync && sync.receiving)
@@ -287,9 +261,7 @@ public class GameServer : MonoBehaviour {
         if (clientConnection[0] != 0)
             SendPacket(p, qt, clientConnection[0]);
         if (clientConnection[1] != 0)
-            SendPacket(p, qt, clientConnection[1]);
-        if (clientConnection[2] != 0)
-            SendPacket(p, qt, clientConnection[1]);
+            SendPacket(p,qt,clientConnection[1]);
     }
 
     //sends to specified port
