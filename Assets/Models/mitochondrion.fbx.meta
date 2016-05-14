@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: 03b2cfc5fbb169545ac07d1c84c36cee
-timeCreated: 1463191067
+guid: ed8c71e597bf2cc42998601eea9ddcd6
+timeCreated: 1463191524
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -8,15 +8,20 @@ ModelImporter:
     100000: Mitochondrion
     100002: //RootNode
     100004: MitochondrionMembrane
+    100006: MitochondrionMembraneCollision
     400000: Mitochondrion
     400002: //RootNode
     400004: MitochondrionMembrane
+    400006: MitochondrionMembraneCollision
     2300000: Mitochondrion
     2300002: MitochondrionMembrane
+    2300004: MitochondrionMembraneCollision
     3300000: Mitochondrion
     3300002: MitochondrionMembrane
+    3300004: MitochondrionMembraneCollision
     4300000: MitochondrionMembrane
-    4300002: Mitochondrion
+    4300002: MitochondrionMembraneCollision
+    4300004: Mitochondrion
   materials:
     importMaterials: 1
     materialName: 0
