@@ -116,6 +116,18 @@ public class GameServer : MonoBehaviour {
         if (clientConnection[1] != 0)
             NetworkTransport.Send(serverSocket, clientConnection[1], channelReliable, p.getData(), p.getSize(), out error);
     }
+    public void sendMessage(string message)
+    {
+        Packet p = new Packet();
+        p.Write(MESSAGE_ID);
+        p.Write(message);
+
+        byte error;
+        if (clientConnection[0] != 0)
+            NetworkTransport.Send(serverSocket, clientConnection[0], channelReliable, p.getData(), p.getSize(), out error);
+        if (clientConnection[1] != 0)
+            NetworkTransport.Send(serverSocket, clientConnection[1], channelReliable, p.getData(), p.getSize(), out error);
+    }
 
     void SendShutdownMessage()
     {
@@ -182,8 +194,33 @@ public class GameServer : MonoBehaviour {
         string message = p.ReadString();
         if (message == "Reset")
             Reset();
+        else if (message.StartsWith("Parent: "))
+            TransmitChangeOfParent(message);
         else
             Debug.Log(message);
+    }
+
+    private void TransmitChangeOfParent(string message)
+    {
+        string[] messageParts = message.Split(' ');
+        int parentID = 0;
+        int childID = 0;
+        bool succeeded = int.TryParse(messageParts[1], out parentID) && int.TryParse(messageParts[3], out childID);
+        if(!succeeded)
+        {
+            Debug.Log("Failed to change parent. Message received: " + message);
+            return;
+        }
+        sendMessage(message);
+        TryChangeParent(childID, parentID);
+    }
+
+    private void TryChangeParent(int childID, int parentID)
+    {
+        SyncScript childScript = syncScripts[childID];
+        SyncScript parentScript = syncScripts[parentID];
+        if(childScript && parentScript)
+            childScript.transform.parent = parentScript.transform.parent;
     }
 
     private void SendTransformToOtherClient(Packet p, int clientPortNum, int id)
