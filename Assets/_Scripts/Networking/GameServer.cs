@@ -196,8 +196,18 @@ public class GameServer : MonoBehaviour {
             Reset();
         else if (message.StartsWith("Parent: "))
             TransmitChangeOfParent(message);
+        else if (message == "ToggleHandPos")
+            ToggleHandPos();
         else
             Debug.Log(message);
+    }
+
+    private DisableProxy handProxy;
+    private void ToggleHandPos()
+    {
+        if (!handProxy)
+            handProxy = GameObject.FindObjectOfType<DisableProxy>();
+        handProxy.ToggleHandPlacement();
     }
 
     private void TransmitChangeOfParent(string message)

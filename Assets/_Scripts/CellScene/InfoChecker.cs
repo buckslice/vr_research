@@ -49,7 +49,7 @@ public class InfoChecker : MonoBehaviour {
 
         RaycastHit info;
         if (Physics.Raycast(cam.position, cam.forward, out info, rayCastDistance)) {
-            if (Input.GetMouseButton(0)) {
+            if (Input.GetMouseButtonDown(0)) {
                 ps.transform.position = info.point - cam.forward * 0.1f;
                 ps.transform.rotation = Quaternion.LookRotation(info.normal);
                 LookInfo lookInfo = info.collider.GetComponent<LookInfo>();
@@ -59,6 +59,7 @@ public class InfoChecker : MonoBehaviour {
                     }
                     currentShow = showText(lookInfo);
                     StartCoroutine(currentShow);
+                    Debug.Log("clicked");
                 }
             }
         } else {

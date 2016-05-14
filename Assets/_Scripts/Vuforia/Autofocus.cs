@@ -18,10 +18,10 @@ public class Autofocus : MonoBehaviour
     void Update()
     {
         // Trigger an autofocus event on tap
-        if (Input.GetMouseButtonUp(0))
-        {
-            StartCoroutine(TriggerAutofocus());
-        }
+        //if (Input.GetMouseButtonUp(0))
+        //{
+        //    StartCoroutine(TriggerAutofocus());
+        //}
     }
 
     

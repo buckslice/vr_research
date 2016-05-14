@@ -66,10 +66,9 @@ public class GameClient : MonoBehaviour {
         //}
 
         if (Input.GetKeyDown(KeyCode.C))
-        {
             sendTestMessage();
-        }
-
+        if (Input.GetMouseButtonDown(0) && Application.loadedLevelName == "AR client") //deprecated and janky
+            sendMessage("ToggleHandPos");
         checkMessages();
     }
 
