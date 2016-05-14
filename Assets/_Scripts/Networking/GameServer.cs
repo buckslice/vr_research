@@ -289,7 +289,7 @@ public class GameServer : MonoBehaviour {
         if (clientConnection[1] != 0)
             SendPacket(p, qt, clientConnection[1]);
         if (clientConnection[2] != 0)
-            SendPacket(p, qt, clientConnection[1]);
+            SendPacket(p, qt, clientConnection[2]);
     }
 
     //sends to specified port
